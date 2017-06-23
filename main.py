@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, session, url_for, render_template, request, redirect, escape, flash
+from data_access import queries
 import logging
 from logging import Formatter, FileHandler
 import os
@@ -6,11 +7,46 @@ import requests
 import pprint
 
 app = Flask(__name__)
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
 
 @app.route('/')
 def list_of_planets():
-    return render_template('/index.html')
+    if 'username' in session:
+        username = escape(session['username'])
+        return render_template('/index.html', username=username)
+    return render_template('index.html')
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    password = request.form['password']
+    if queries.check_credentials(username, password):
+        session['username'] = username
+        return redirect(url_for('list_of_planets'))
+    flash('Invalid username or password', 'danger')
+    return redirect(url_for('list_of_planets'))
+
+
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.form['reg_username']
+    password = request.form['reg_password']
+    if not queries.check_credentials(username, password):
+        queries.insert_user(username, password)
+        session['username'] = username
+        flash('Succesfully registered account: ' + session['username'], 'success')
+        return redirect(url_for('list_of_planets'))
+    flash('Registration failed, username or password already exists.', 'warning')
+    return redirect(url_for('list_of_planets'))
+
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    flash('logged out from account: ' + session['username'], 'info')
+    session.pop('username', None)
+    return redirect(url_for('list_of_planets'))
 
 
 def number_formatter(number_to_format, unit_of_measurement):

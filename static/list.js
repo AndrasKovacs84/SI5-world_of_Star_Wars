@@ -1,18 +1,32 @@
 var swPlanetsList = (function() {
+    //var paginationBtns = document.querySelectorAll("[data-pagination]");
     // VARIABLES NOT AVAILABLE OUTSIDE:
-    var paginationBtns = document.querySelectorAll("[data-pagination]");
-    paginationBtns.forEach(btn => btn.addEventListener("click", pageChange));
+    //paginationBtns.forEach(btn => btn.addEventListener("click", getPageData($(this).attr('data-pagination'))));
     var apiLink = "http://swapi.co/api/planets"
+    $('button[data-pagination]').click(function () {
+        var newPage = $(this).attr('data-pagination');
+        getPageData(newPage);
+    });
 
+    $('#toggleLoginForm').click(function(e) {
+        $('#login').show();
+        $('#register').hide();
+    })
+    $('#toggleRegisterForm').click(function(e) {
+        $('#register').show();
+        $('#login').hide();
+    })
+    
     function pageChange(){
 
     }
+
 
     // FUNCTIONS NOT AVAILABLE OUTSIDE
     function getPageData(apiURL) {
         var page = '';
         var pageData = $.ajax({
-            url: apiLink,
+            url: apiURL,
             type: 'GET',
             success: function(data){
                 renderList(data);
@@ -42,6 +56,7 @@ var swPlanetsList = (function() {
 
 
     function renderList(data) {
+        $('#planet_details tbody').empty();
         $.each(data.results, function (i, planet) {
             html = "<tr>";
             html +="<td>"+planet.name+"</td>";
@@ -55,8 +70,30 @@ var swPlanetsList = (function() {
             html += "</tr>";
             $(html).appendTo("#planet_details");
         });
+        $('button:contains("Next")').attr('data-pagination', data.next);
+        $('button:contains("Previous")').attr('data-pagination', data.previous);
+
+        // disable/enable next button if next page exists
+        if ($('button:contains("Next")').attr('data-pagination') == undefined) {
+            $('button:contains("Next")').prop('disabled', true);
+        } else if ($('button:contains("Next")').attr('data-pagination') != undefined) {
+            $('button:contains("Next")').prop('disabled', false);
+        } 
+        
+        // disable/enable previous button if previous page exists
+        if ($('button:contains("Previous")').attr('data-pagination') == undefined) {
+            $('button:contains("Previous")').prop('disabled', true);
+        } else if ($('button:contains("Previous")').attr('data-pagination') != undefined) {
+            $('button:contains("Previous")').prop('disabled', false);
+        }
     }
 
+
+    $(document).ready(function(e) {
+        getPageData(apiLink);
+        $('#login').hide();
+        $('#register').hide();
+    })
 
     // FUNCTIONS AVAILABLE OUTSIDE
     return {

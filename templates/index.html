@@ -6,12 +6,64 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
-        <link href="css/style.css" rel="stylesheet">
+        <link href="/static/css/style.css" rel="stylesheet">
         <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js" defer></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js" defer></script>
         <script src="/static/list.js" defer></script>
     </head>
     <body>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <!-- <strong>Title</strong> --> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if username%}
+        <div class="alert alert-success" data-user={{username}}>
+            <strong>Success!</strong> Logged in as {{ username }}. Click
+            <a href="/logout" class="alert-link">here</a> to log out.
+        </div>
+        {% else %}
+        <div>
+            You currently not logged in.
+            <div class="btn-group">
+                <button type="button" id="toggleLoginForm" class="btn btn-default">Login</button>
+                <button type="button" id="toggleRegisterForm" class="btn btn-default">Register</button>
+            </div>
+        </div>
+
+        {% endif %}
+
+        <form id='login' class="form-inline" role="form" action='/login' method="POST">
+            <div class="form-group">
+                <label class="sr-only" for="inputUsername">Username</label>
+                <input name='username' type="username" class="form-control" id="loginUsername" placeholder="Username">
+            </div>
+            <div class="form-group">
+                <label class="sr-only" for="inputPassword">Password</label>
+                <input name='password' type="password" class="form-control" id="loginPassword" placeholder="Password">
+            </div>
+            <button type="submit" class="btn btn-default" id="signInBtn">Sign in</button>
+        </form>
+
+        <form id='register' class="form-inline" role="form" action='/register' method="POST">
+            <div class="form-group">
+                <label class="sr-only" for="inputUsername">Username</label>
+                <input name='reg_username' type="username" class="form-control" id="regUsername" placeholder="Username">
+            </div>
+            <div class="form-group">
+                <label class="sr-only" for="inputPassword">Password</label>
+                <input name='reg_password' type="password" class="form-control" id="regPassword" placeholder="Password">
+            </div>
+            <button type="submit" class="btn btn-default" id="registerBtn">Register</button>
+        </form>
+
         <h1>Star Wars universe planets</h1>
         <button type="button" class="btn btn-primary" data-pagination="">Previous</button>
         <button type="button" class="btn btn-primary" data-pagination="">Next</button>
