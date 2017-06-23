@@ -25,7 +25,7 @@
         {% endwith %}
 
         {% if username%}
-        <div class="alert alert-success" data-user={{username}}>
+        <div id="loginStatus" class="alert alert-success" data-user={{username}}>
             <strong>Success!</strong> Logged in as {{ username }}. Click
             <a href="/logout" class="alert-link">here</a> to log out.
         </div>
@@ -71,14 +71,7 @@
         <div class="table-responsive">           
         <table class="table table-bordered" id="planet_details">
             <thead>
-                <th>Name</th>
-                <th>Diameter</th>
-                <th>Climate</th>
-                <th>Gravity</th>
-                <th>Terrain</th>
-                <th>Surface water</th>
-                <th>Population</th>
-                <th>Residents</th>
+
             </thead>
             <tbody>
                 

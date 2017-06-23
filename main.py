@@ -1,10 +1,11 @@
-from flask import Flask, session, url_for, render_template, request, redirect, escape, flash
+from flask import Flask, session, url_for, render_template, request, redirect, escape, flash, jsonify
 from data_access import queries
 import logging
 from logging import Formatter, FileHandler
 import os
 import requests
 import pprint
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
@@ -47,6 +48,13 @@ def logout():
     flash('logged out from account: ' + session['username'], 'info')
     session.pop('username', None)
     return redirect(url_for('list_of_planets'))
+
+
+@app.route('/planet_vote', methods=['POST'])
+def planet_vote():
+    content = request.get_json()
+    queries.insert_vote(content['planetId'], session['username'], datetime.now())
+    return jsonify({'message': 'Registered vote for ' + content['planetName']})
 
 
 def number_formatter(number_to_format, unit_of_measurement):

@@ -9,13 +9,28 @@ var swPlanetsList = (function() {
     });
 
     $('#toggleLoginForm').click(function(e) {
-        $('#login').show();
-        $('#register').hide();
-    })
+        $('#login').slideDown(200);
+        $('#register').slideUp(200);
+    });
     $('#toggleRegisterForm').click(function(e) {
-        $('#register').show();
-        $('#login').hide();
-    })
+        $('#register').slideDown(200);
+        $('#login').slideUp(200);
+    });
+
+    $('#planet_details').on('click', '.votePlanet', function(e) {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: "/planet_vote",
+            data: JSON.stringify({planetId: $(this).attr('data-planetId'), 
+                                  planetName: $(this).attr('data-planetName')}),
+            dataType: "json",
+            success: function(replyFromFlask) {
+                        alert(replyFromFlask.message);
+                        }
+        });
+    });
+    
     
     function pageChange(){
 
@@ -56,9 +71,22 @@ var swPlanetsList = (function() {
 
 
     function renderList(data) {
+        $('#planet_details thead').empty();
+        var header = '';
+        if ($('#loginStatus').attr('data-user')) {
+            header += "<th>Vote</th>";
+        }
+        header += "<th>Name</th><th>Diameter</th><th>Climate</th><th>Gravity</th><th>Terrain</th><th>Surface water</th><th>Population</th><th>Residents</th>";
+        //$(header).appendTo("#planet_details");
+        //$('#planet_details thead').html(header)
+        $('#planet_details thead').append(header)
         $('#planet_details tbody').empty();
         $.each(data.results, function (i, planet) {
             html = "<tr>";
+            if ($('#loginStatus').attr('data-user')) {
+                var btn = '<button type="button" class="btn btn-default btn-sm votePlanet" data-planetName="'+ planet.name + '" data-planetId='+ planet.url.slice(-2, -1) +' ><span class="glyphicon glyphicon-thumbs-up"></span></button>';
+                html += "<td>" + btn + "</td>";
+            }
             html +="<td>"+planet.name+"</td>";
             html +="<td>"+formatNumberAndAddUnit(planet.diameter, "km")+"</td>";
             html +="<td>"+planet.climate+"</td>";
@@ -89,6 +117,13 @@ var swPlanetsList = (function() {
     }
 
 
+//    $.each(voteBtns, function(i, btn) {
+//        btn.click(function(e){
+//            console.log(e);
+//        });
+//    });
+
+
     $(document).ready(function(e) {
         getPageData(apiLink);
         $('#login').hide();
@@ -99,7 +134,7 @@ var swPlanetsList = (function() {
     return {
     
         a_func: function() {
-            getPageData(apiLink);
+            console.log($('button[data-planetid]'));
         },
 
         b_func: function() {
