@@ -1,4 +1,5 @@
 from flask import Flask, session, url_for, render_template, request, redirect, escape, flash, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
 from data_access import queries
 import logging
 from logging import Formatter, FileHandler
@@ -22,8 +23,10 @@ def list_of_planets():
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form['username']
-    password = request.form['password']
-    if queries.check_credentials(username, password):
+    hashed_pw = queries.check_user_return_pw(username)
+    result = check_password_hash(hashed_pw, request.form['password'])
+    print(result)
+    if result:
         session['username'] = username
         return redirect(url_for('list_of_planets'))
     flash('Invalid username or password', 'danger')
@@ -33,8 +36,8 @@ def login():
 @app.route('/register', methods=['POST'])
 def register():
     username = request.form['reg_username']
-    password = request.form['reg_password']
-    if not queries.check_credentials(username, password):
+    password = generate_password_hash(request.form['reg_password'])
+    if not queries.check_if_user_exists(username):
         queries.insert_user(username, password)
         session['username'] = username
         flash('Succesfully registered account: ' + session['username'], 'success')
@@ -53,7 +56,8 @@ def logout():
 @app.route('/planet_vote', methods=['POST'])
 def planet_vote():
     content = request.get_json()
-    queries.insert_vote(content['planetId'], session['username'], datetime.now())
+    planet_id = content['planetId'].split('/')[-2]
+    queries.insert_vote(planet_id, session['username'], datetime.now())
     return jsonify({'message': 'Registered vote for ' + content['planetName']})
 
 
@@ -63,15 +67,38 @@ def residents():
     residents = []
     for url in url_list_for_residents:
         response = requests.get(url).json()
+        response['height'] = number_formatter(response['height'], 'm')
+        response['mass'] = number_formatter(response['mass'], 'kg')
         residents.append(response)
     return jsonify(residents)
 
 
+@app.route('/planet_statistics', methods=['POST'])
+def planet_stats():
+    stats_from_db = queries.vote_stats()
+    stats_for_all_planets = []
+
+    for planet in stats_from_db['planet_stats']:
+        planet_data_from_api = requests.get('http://swapi.co/api/planets/'+str(planet[0])).json()
+        planet_data = {'planet_name': planet_data_from_api['name'],
+                       'planet_votes': planet[1],
+                       'percent_of_highest_vote': ''}
+        stats_for_all_planets.append(planet_data)
+    
+    stats_for_all_planets[0]['percent_of_highest_vote'] = 100
+    for i in range(1, len(stats_for_all_planets)):
+        stats_for_all_planets[i]['percent_of_highest_vote'] = (stats_for_all_planets[i]['planet_votes'] /
+                                                               stats_for_all_planets[0]['planet_votes']) * 100
+    return jsonify(stats_for_all_planets)
+
+
 def number_formatter(number_to_format, unit_of_measurement):
     formatted_number = "unknown"
-    if number_to_format != "unknown":
-        formatted_number = "{0:,}".format(int(number_to_format)) + " " + str(unit_of_measurement)
-    print(formatted_number)
+    if number_to_format != "unknown" and unit_of_measurement != "m":
+        formatted_number = number_to_format + " " + str(unit_of_measurement)
+    elif number_to_format != "unknown" and unit_of_measurement == "m":
+        int(number_to_format)
+        formatted_number = str(float(number_to_format)/100) + " " + str(unit_of_measurement)
     return formatted_number
 
 

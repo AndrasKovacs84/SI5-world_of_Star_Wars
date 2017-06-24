@@ -20,15 +20,49 @@ def insert_user(cursor, username, password):
 
 
 @connect_to_sql
-def check_credentials(cursor, username, password):
+def check_user_return_pw(cursor, username):
     statement = """
-                SELECT username, password
+                SELECT password
                 FROM sw_users
-                WHERE username = %s AND password = %s
+                WHERE username = %s
                 """
-    cursor.execute(statement, (username, password))
+    cursor.execute(statement, (username,))
     result = cursor.fetchall()
-    if result == []:
-        return False
-    else:
+
+    if result:
+        return result[0][0]
+    return False
+
+
+@connect_to_sql
+def check_if_user_exists(cursor, username):
+    statement = """
+                SELECT *
+                FROM sw_users
+                WHERE username = %s
+                """
+    cursor.execute(statement, (username,))
+    result = cursor.fetchall()
+
+    if result:
         return True
+    return False
+
+
+
+@connect_to_sql
+def vote_stats(cursor):
+    result = {'planet_stats': '',
+              'total_nr_of_votes': ''}
+    statement = """
+                SELECT planet_id, COUNT(*) AS nr_of_votes
+                FROM planet_votes
+                GROUP BY planet_id
+                ORDER BY nr_of_votes DESC
+                """
+    cursor.execute(statement)
+    result['planet_stats'] = cursor.fetchall()
+    statement = """SELECT COUNT(*) FROM planet_votes"""
+    cursor.execute(statement)
+    result['total_nr_of_votes'] = cursor.fetchall()
+    return result

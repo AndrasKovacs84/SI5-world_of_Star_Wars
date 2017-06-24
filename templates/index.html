@@ -12,6 +12,8 @@
         <script src="/static/list.js" defer></script>
     </head>
     <body>
+    <div class="container">
+            
     <div id="headerContainer">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -69,7 +71,7 @@
         <h1>Star Wars universe planets</h1>
         <button type="button" class="btn btn-primary" data-pagination="">Previous</button>
         <button type="button" class="btn btn-primary" data-pagination="">Next</button>
-
+        <button type="button" id="toggle_planet_votes" class="btn btn-primary pull-right" data-toggle="modal" data-target="#residentsModal">View top voted planets</button>
         <div class="table-responsive">           
         <table class="table table-bordered" id="planet_details">
             <thead>
@@ -87,24 +89,27 @@
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                             <h4 class="modal-title" id="exampleModalLabel">New message</h4>
                         </div>
-                        <div class="modal-body">
-                            
+                        <div class="modal-body" id="modal-body">
+                            <div id="vote_stats_container">
+                                
+                            </div>
                             <div class="table table-responsive">
                             <table id="residents_list" class="table table-bordered">
                                 <thead>
-                                    <th>Name</th>
-                                    <th>Height</th>
-                                    <th>Mass</th>
-                                    <th>Hair color</th>
-                                    <th>Skin color</th>
-                                    <th>Eye color</th>
-                                    <th>Birth year</th>
-                                    <th>Gender</th>
+
                                 </thead>
                                 <tbody>
                                     
                                 </tbody>
                             </table>
+                            </div>
+
+                            <div class="spinner">
+                                <div class="rect1"></div>
+                                <div class="rect2"></div>
+                                <div class="rect3"></div>
+                                <div class="rect4"></div>
+                                <div class="rect5"></div>
                             </div>
 
                         </div>
@@ -115,6 +120,10 @@
                 </div>
             </div>
         
+
+
         </div>
+    </div>
+
     </body>
 </html>

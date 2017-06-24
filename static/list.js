@@ -49,44 +49,71 @@ var swPlanetsList = (function() {
 
     $('#residentsModal').on('show.bs.modal', function (event) {
         $('#residents_list tbody').empty();
+        $('#residents_list thead').empty();
+        $('#vote_stats_container').empty();
+        $('.spinner').show();
         var button = $(event.relatedTarget); // Button that triggered the modal
-        var planetName = button.data('planetname'); // Extract info from data-* attributes
         // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
         // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-        var residentsApiLinks = button.data('residents').split(',');
-        var residentsObj = [];
-        var html = '';
-        var resident = ''
-
-        $.ajax({
-            url: '/residents',
-            type: 'POST',
-            contentType: "application/json; charset=utf-8",
-            data: JSON.stringify(residentsApiLinks),
-            dataType: "json"
-        }).done(function (response){
-            renderModalList(response);
-        });
-
-//        $.each(residentsApiLinks, function(i) {
-//            var residentList;
-//            $.ajax({
-//                url: residentsApiLinks[i],
-//                type: 'GET',
-//                dataType: 'json'
-//            }).done(function(data){
-//                residentsObj.push(data);
-//            });
-//            console.log('hlo', residentsObj);
-//        });
-//        renderModalList(residentsObj);
-//        $(html).appendTo("#residents_list");
-//        var modal = $(this);
-//        modal.find('.modal-title').text('Residents of ' + planetName);
+        if (button.data('residents')) {
+            var planetName = button.data('planetname'); // Extract info from data-* attributes
+            var residentsApiLinks = button.data('residents').split(',');
+            $.ajax({
+                url: '/residents',
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(residentsApiLinks),
+                dataType: "json"
+            }).done(function (response){
+                $('.spinner').hide();
+                renderModalList(response);
+            });
+            var modal = $(this);
+            modal.find('.modal-title').text('Residents of ' + planetName);
+        } else if (event.relatedTarget.id === 'toggle_planet_votes') {
+            console.log('this is not the button you are looking for...')
+            $.ajax({
+                url: '/planet_statistics',
+                type: 'POST',
+                dataType: "json"
+            }).done(function (response) {
+                $('.spinner').hide();
+                renderVoteStats(response);
+            });
+            var modal = $(this);
+            modal.find('.modal-title').text('Top voted planets');
+        } else {
+            console.log("THIS IS THE ELSE BRANCH, THIS ISN'T SUPPOSED TO HAPPEN")
+        }
     })
 
 
+    function renderVoteStats(voteStats) {
+        $.each(voteStats, function (i, planet) {
+            progressBar = ` <h4>${planet.planet_name} - <small> ${planet.planet_votes} votes</small></h4>
+                            <div class="progress">                
+                                <div id="${planet.planet_name}"class="progress-bar" role="progressbar" aria-valuenow="${planet.percent_of_highest_vote}" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                                </div>
+                            </div>`
+            $(progressBar).appendTo("#vote_stats_container");
+        });
+        $.each(voteStats, function (i, planet) {
+            $(`.progress-bar[id="${planet.planet_name}"`).animate({
+                width: `${planet.percent_of_highest_vote}%`
+            }, 2500);
+        });
+    }
+
+
     function renderModalList(residentsObj) {
+        var header = `<th>Name</th>
+                    <th>Height</th>
+                    <th>Mass</th>
+                    <th>Hair color</th>
+                    <th>Skin color</th>
+                    <th>Eye color</th>
+                    <th>Birth year</th>
+                    <th>Gender</th>`
         var html = '';
         $.each(residentsObj, function (i, resident) {
             html += '<tr>';
@@ -99,24 +126,10 @@ var swPlanetsList = (function() {
             html += `<td>${resident.birth_year}</td>`;
             html += `<td>${resident.gender}</td>`;
             html += '</tr>'
-        })
+        });
+        //$('#residents_list thead').empty();
+        $('#residents_list thead').append(header);
         $(html).appendTo("#residents_list");
-    }
-
-
-    function addResidentToTable(resident) {
-        var html = '';
-        html += '<tr>';
-        html += `<td>${resident.name}</td>`;
-        html += `<td>${resident.height}</td>`;
-        html += `<td>${resident.mass}</td>`;
-        html += `<td>${resident.hair_color}</td>`;
-        html += `<td>${resident.skin_color}</td>`;
-        html += `<td>${resident.eye_color}</td>`;
-        html += `<td>${resident.birth_year}</td>`;
-        html += `<td>${resident.gender}</td>`;
-        html += '</tr'
-        return html;
     }
 
 
@@ -167,7 +180,7 @@ var swPlanetsList = (function() {
         $.each(data.results, function (i, planet) {
             var html = "<tr>";
             if ($('#loginStatus').attr('data-user')) {
-                var btn = '<button type="button" class="btn btn-default btn-sm votePlanet" data-planetName="'+ planet.name + '" data-planetId='+ planet.url.slice(-2, -1) +' ><span class="glyphicon glyphicon-thumbs-up"></span></button>';
+                var btn = '<button type="button" class="btn btn-default btn-sm votePlanet" data-planetName="'+ planet.name + '" data-planetId='+ planet.url +' ><span class="glyphicon glyphicon-thumbs-up"></span></button>';
                 html += "<td>" + btn + "</td>";
             }
             html +="<td>"+planet.name+"</td>";
