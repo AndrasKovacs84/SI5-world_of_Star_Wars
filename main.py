@@ -57,6 +57,16 @@ def planet_vote():
     return jsonify({'message': 'Registered vote for ' + content['planetName']})
 
 
+@app.route('/residents', methods=['POST'])
+def residents():
+    url_list_for_residents = request.get_json()
+    residents = []
+    for url in url_list_for_residents:
+        response = requests.get(url).json()
+        residents.append(response)
+    return jsonify(residents)
+
+
 def number_formatter(number_to_format, unit_of_measurement):
     formatted_number = "unknown"
     if number_to_format != "unknown":

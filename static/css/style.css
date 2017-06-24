@@ -1,0 +1,21 @@
+#headerContainer {
+    height: 100px;
+    overflow: hidden;
+}
+
+.table-responsive {
+    margin: 20px 10px 10px 10px;
+}
+
+.jquery-flash {
+    display: none;
+}
+
+.alert {
+    margin: 0 0 0 0;
+    padding: 7px 7px 7px 7px;
+}
+
+.modal-dialog {
+    width: 85%;
+}
