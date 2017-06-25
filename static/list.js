@@ -10,12 +10,19 @@ var swPlanetsList = (function() {
     });
 
     $('#toggleLoginForm').click(function(e) {
-        $('#login').slideDown(200);
+        //event.preventDefault(); // because it is an anchor element
+        //    $('.whole').animate({
+        //    right: '200px'
+        //});
+        //$('#login').toggle();
+        
+        //$('#login').slideDown(200);
+        $('#login').animate({width:'toggle'},350);
         $('#register').slideUp(200);
         $('.flash').dequeue().slideUp(200);
     });
     $('#toggleRegisterForm').click(function(e) {
-        $('#register').slideDown(200);
+        $('#register').animate({width:'toggle'},350)
         $('#login').slideUp(200);
         $('.flash').dequeue().slideUp(200);
     });

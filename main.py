@@ -17,6 +17,7 @@ def list_of_planets():
     if 'username' in session:
         username = escape(session['username'])
         return render_template('/index.html', username=username)
+    flash('Your are currently not logged in.', 'warning')
     return render_template('index.html')
 
 
@@ -24,7 +25,8 @@ def list_of_planets():
 def login():
     username = request.form['username']
     hashed_pw = queries.check_user_return_pw(username)
-    result = check_password_hash(hashed_pw, request.form['password'])
+    password = request.form['password']
+    result = check_password_hash(hashed_pw, password)
     print(result)
     if result:
         session['username'] = username
@@ -38,10 +40,13 @@ def register():
     username = request.form['reg_username']
     password = generate_password_hash(request.form['reg_password'])
     if not queries.check_if_user_exists(username):
-        queries.insert_user(username, password)
-        session['username'] = username
-        flash('Succesfully registered account: ' + session['username'], 'success')
-        return redirect(url_for('list_of_planets'))
+        if queries.insert_user(username, password):
+            session['username'] = username
+            flash('Succesfully registered account: ' + session['username'], 'success')
+            return redirect(url_for('list_of_planets'))
+        else:
+            flash('An errror has occured. Registration cancelled.', 'danger')
+            return redirect(url_for('list_of_planets'))
     flash('Registration failed, username or password already exists.', 'warning')
     return redirect(url_for('list_of_planets'))
 

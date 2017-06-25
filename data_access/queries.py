@@ -1,4 +1,5 @@
 from .server_connection.connect import connect_to_sql
+import psycopg2
 
 
 @connect_to_sql
@@ -16,7 +17,11 @@ def insert_user(cursor, username, password):
     statement = """ INSERT INTO sw_users
                     (username, password)
                     VALUES (%s, %s); """
-    cursor.execute(statement, (username, password))
+    try:
+        cursor.execute(statement, (username, password))
+        return True
+    except psycopg2.Error:
+        return False
 
 
 @connect_to_sql
