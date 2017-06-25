@@ -20,16 +20,14 @@
     width: 85%;
 }
 
-.login_reg_form_container {
-    position: absolute;
-    overflow: hidden;
-    white-space: nowrap;
-
-}
-
 .progress-bar {
     -webkit-transition: none !important;
     transition: none !important;
+}
+
+#signInBtn,#registerBtn {
+    width: 100px;
+    margin-right: 15px
 }
 
 .spinner {

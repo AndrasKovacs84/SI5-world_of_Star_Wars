@@ -17,20 +17,24 @@ def list_of_planets():
     if 'username' in session:
         username = escape(session['username'])
         return render_template('/index.html', username=username)
-    flash('Your are currently not logged in.', 'warning')
     return render_template('index.html')
 
 
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form['username']
-    hashed_pw = queries.check_user_return_pw(username)
     password = request.form['password']
-    result = check_password_hash(hashed_pw, password)
-    print(result)
-    if result:
+    hashed_pw = queries.check_user_return_pw(username)
+
+    if hashed_pw:
+        is_pw_ok = check_password_hash(hashed_pw, password)
+    else:
+        is_pw_ok = False
+
+    if is_pw_ok:
         session['username'] = username
         return redirect(url_for('list_of_planets'))
+
     flash('Invalid username or password', 'danger')
     return redirect(url_for('list_of_planets'))
 
@@ -40,14 +44,14 @@ def register():
     username = request.form['reg_username']
     password = generate_password_hash(request.form['reg_password'])
     if not queries.check_if_user_exists(username):
-        if queries.insert_user(username, password):
+        if queries.insert_user(username, password):  # query will return false if there was a database error
             session['username'] = username
             flash('Succesfully registered account: ' + session['username'], 'success')
             return redirect(url_for('list_of_planets'))
         else:
             flash('An errror has occured. Registration cancelled.', 'danger')
             return redirect(url_for('list_of_planets'))
-    flash('Registration failed, username or password already exists.', 'warning')
+    flash('Registration failed, username already exists.', 'warning')
     return redirect(url_for('list_of_planets'))
 
 
@@ -62,8 +66,11 @@ def logout():
 def planet_vote():
     content = request.get_json()
     planet_id = content['planetId'].split('/')[-2]
-    queries.insert_vote(planet_id, session['username'], datetime.now())
-    return jsonify({'message': 'Registered vote for ' + content['planetName']})
+    if queries.insert_vote(planet_id, session['username'], datetime.now()):
+        return jsonify({'message': 'Registered vote for ' + content['planetName'],
+                        'category': 'success'})
+    return jsonify({'message': 'An error occured while attempting to register vote!',
+                    'category': 'danger'})
 
 
 @app.route('/residents', methods=['POST'])
@@ -89,7 +96,7 @@ def planet_stats():
                        'planet_votes': planet[1],
                        'percent_of_highest_vote': ''}
         stats_for_all_planets.append(planet_data)
-    
+
     stats_for_all_planets[0]['percent_of_highest_vote'] = 100
     for i in range(1, len(stats_for_all_planets)):
         stats_for_all_planets[i]['percent_of_highest_vote'] = (stats_for_all_planets[i]['planet_votes'] /
@@ -107,17 +114,6 @@ def number_formatter(number_to_format, unit_of_measurement):
     return formatted_number
 
 
-"""
-@app.errorhandler(500)
-def internal_error(error):
-    return render_template('errors/500.html'), 500
-
-
-@app.errorhandler(404)
-def not_found_error(error):
-    return render_template('errors/404.html'), 404
-"""
-
 if not app.debug:
     file_handler = FileHandler('error.log')
     file_handler.setFormatter(
@@ -130,4 +126,4 @@ if not app.debug:
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

@@ -1,28 +1,22 @@
 var swPlanetsList = (function() {
-    //var paginationBtns = document.querySelectorAll("[data-pagination]");
-    // VARIABLES NOT AVAILABLE OUTSIDE:
-    //paginationBtns.forEach(btn => btn.addEventListener("click", getPageData($(this).attr('data-pagination'))));
-    var residentList = '';
     var apiLink = "http://swapi.co/api/planets";
+
+
     $('button[data-pagination]').click(function () {
         var newPage = $(this).attr('data-pagination');
         getPageData(newPage);
     });
 
+
     $('#toggleLoginForm').click(function(e) {
-        //event.preventDefault(); // because it is an anchor element
-        //    $('.whole').animate({
-        //    right: '200px'
-        //});
-        //$('#login').toggle();
-        
-        //$('#login').slideDown(200);
-        $('#login').animate({width:'toggle'},350);
+        $('#login').slideDown(200);
         $('#register').slideUp(200);
         $('.flash').dequeue().slideUp(200);
     });
+
+
     $('#toggleRegisterForm').click(function(e) {
-        $('#register').animate({width:'toggle'},350)
+        $('#register').slideDown(200);
         $('#login').slideUp(200);
         $('.flash').dequeue().slideUp(200);
     });
@@ -37,21 +31,10 @@ var swPlanetsList = (function() {
                                   planetName: $(this).attr('data-planetName')}),
             dataType: "json",
             success: function(replyFromFlask) {
-                        flashMessageSuccess(replyFromFlask.message);
+                        flashMessageSuccess(replyFromFlask.message, replyFromFlask.category);
                         }
         });
     });
-
-
-    function flashMessageSuccess(message){
-        $('.jquery-flash:hidden').remove();
-        var messageFlash = `
-                <div class="alert alert-success alert-dismissible jquery-flash" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    ${message}
-                </div>`;
-        $(messageFlash).prependTo($('#voteMessageContainer')).slideDown(300).delay(1000).slideUp(300);
-    }
 
 
     $('#residentsModal').on('show.bs.modal', function (event) {
@@ -59,11 +42,9 @@ var swPlanetsList = (function() {
         $('#residents_list thead').empty();
         $('#vote_stats_container').empty();
         $('.spinner').show();
-        var button = $(event.relatedTarget); // Button that triggered the modal
-        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+        var button = $(event.relatedTarget);
         if (button.data('residents')) {
-            var planetName = button.data('planetname'); // Extract info from data-* attributes
+            var planetName = button.data('planetname');
             var residentsApiLinks = button.data('residents').split(',');
             $.ajax({
                 url: '/residents',
@@ -78,7 +59,6 @@ var swPlanetsList = (function() {
             var modal = $(this);
             modal.find('.modal-title').text('Residents of ' + planetName);
         } else if (event.relatedTarget.id === 'toggle_planet_votes') {
-            console.log('this is not the button you are looking for...')
             $.ajax({
                 url: '/planet_statistics',
                 type: 'POST',
@@ -89,10 +69,19 @@ var swPlanetsList = (function() {
             });
             var modal = $(this);
             modal.find('.modal-title').text('Top voted planets');
-        } else {
-            console.log("THIS IS THE ELSE BRANCH, THIS ISN'T SUPPOSED TO HAPPEN")
         }
     })
+
+
+    function flashMessageSuccess(message, category){
+        $('.jquery-flash:hidden').remove();
+        var messageFlash = `
+                <div class="alert alert-${category} alert-dismissible jquery-flash" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    ${message}
+                </div>`;
+        $(messageFlash).prependTo($('#voteMessageContainer')).slideDown(300).delay(1000).slideUp(300);
+    }
 
 
     function renderVoteStats(voteStats) {
@@ -134,13 +123,11 @@ var swPlanetsList = (function() {
             html += `<td>${resident.gender}</td>`;
             html += '</tr>'
         });
-        //$('#residents_list thead').empty();
         $('#residents_list thead').append(header);
         $(html).appendTo("#residents_list");
     }
 
 
-    // FUNCTIONS NOT AVAILABLE OUTSIDE
     function getPageData(apiURL) {
         $.ajax({
             url: apiURL,
@@ -228,15 +215,5 @@ var swPlanetsList = (function() {
     })
 
     // FUNCTIONS AVAILABLE OUTSIDE
-    return {
-    
-        a_func: function() {
-            console.log($('button[data-planetid]'));
-        },
-
-        b_func: function() {
-            a_func(); // this function can also access my_var
-        }
-    };
-
+    return {};
 })();

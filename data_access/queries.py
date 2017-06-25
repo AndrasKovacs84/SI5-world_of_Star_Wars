@@ -9,7 +9,11 @@ def insert_vote(cursor, planet_id, username, submission_time):
                     VALUES (%s, (SELECT id
                                 FROM sw_users
                                 WHERE username=%s), %s); """
-    cursor.execute(statement, (planet_id, username, submission_time))
+    try:
+        cursor.execute(statement, (planet_id, username, submission_time))
+        return True
+    except psycopg2.Error:
+        return False
 
 
 @connect_to_sql
@@ -52,7 +56,6 @@ def check_if_user_exists(cursor, username):
     if result:
         return True
     return False
-
 
 
 @connect_to_sql
