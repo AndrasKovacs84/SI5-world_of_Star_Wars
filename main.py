@@ -42,6 +42,13 @@ def login():
 @app.route('/register', methods=['POST'])
 def register():
     username = request.form['reg_username']
+    password = request.form['reg_password']
+
+    if ((len(username) or len(password)) < 4) or (len(username) > 30):
+        flash('Registration failed, username length has to be between 4 and 30 characters, ' +
+              'password has to be longer than 4!', 'warning')
+        return redirect(url_for('list_of_planets'))
+
     password = generate_password_hash(request.form['reg_password'])
     if not queries.check_if_user_exists(username):
         if queries.insert_user(username, password):  # query will return false if there was a database error
@@ -126,4 +133,4 @@ if not app.debug:
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
